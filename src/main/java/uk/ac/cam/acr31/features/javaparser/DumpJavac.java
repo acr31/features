@@ -14,8 +14,11 @@ import com.sun.source.util.JavacTask;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -57,8 +60,16 @@ public class DumpJavac {
     JavacTask task =
         (JavacTask) javaCompiler.getTask(null, null, diagnostics, javacOptions, null, sourceUnits);
     Iterable<? extends CompilationUnitTree> parses = task.parse();
+    task.analyze();
+    JavacTreePathScanner scanner = new JavacTreePathScanner();
     for (CompilationUnitTree parse : parses) {
-      System.out.println(parse.getPackage());
+      Path sourcePath = Paths.get(parse.getSourceFile().toUri());
+      System.out.println(sourcePath.toString());
+      TreeNode root = new TreeNode();
+      parse.accept(scanner, root);
+      Path destinationFile = options.outputDir.resolve(options.srcDir.relativize(sourcePath));
+      Files.createDirectories(destinationFile.getParent());
+      Files.write(destinationFile, root.toString().getBytes(StandardCharsets.UTF_8));
     }
   }
 }
