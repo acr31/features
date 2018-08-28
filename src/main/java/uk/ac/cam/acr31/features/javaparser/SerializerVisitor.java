@@ -564,21 +564,11 @@ class SerializerVisitor extends VoidVisitorAdapter<TreeNode> {
   }
 
   private String getName(Type t) {
-    ResolvedType resolve;
     try {
-      resolve = t.resolve();
+      ResolvedType resolve = t.resolve();
+      return resolve.describe();
     } catch (UnsolvedSymbolException | UnsupportedOperationException e) {
       return t.asString();
     }
-    if (resolve.isReferenceType()) {
-      return resolve.asReferenceType().getQualifiedName();
-    }
-    if (resolve.isPrimitive()) {
-      return resolve.asPrimitive().name();
-    }
-    if (resolve.isVoid()) {
-      return "void";
-    }
-    throw new IllegalArgumentException("Other");
   }
 }
